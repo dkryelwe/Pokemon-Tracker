@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Tracker - Kanto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: lightblue;
+            text-align: center;
+        }
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: #ffcb05;
+            -webkit-text-stroke: 2px black;
+            text-shadow: 4px 4px 0px #2a75bb, 6px 6px 5px rgba(0, 0, 0, 0.3);
+        }
+        #pokemon-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pokemon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            width: 200px;
+            position: relative;
+            border: 5px solid #ccc;
+        }
+        .pokemon img {
+            width: 100px;
+            height: 100px;
+        }
+        .pokemon .pokemon-number {
+            font-weight: bold;
+        }
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .checkbox-container label {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-container input[type="checkbox"] {
+            margin-left: 5px;
+        }
+        #counts {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: #ffcb05;
+            border: 2px solid black;
+            border-radius: 10px;
+            text-decoration: none;
+            color: black;
+        }
+        :root {
+            --fire: #FF0000;
+            --water: #0000FF;
+            --grass: #008000;
+            --poison: #C09;
+            --electric: #FFD700;
+            --flying: #87CEFA;
+            --bug: #9ACD32;
+            --normal: #D3D3D3;
+            --fighting: #CD5C5C;
+            --ground: #DAA520;
+            --rock: #B8860B;
+            --ghost: #708090;
+            --steel: #B0C4DE;
+            --psychic: #EE82EE;
+            --ice: #E0FFFF;
+            --dragon: #8A2BE2;
+            --dark: #A9A9A9;
+            --fairy: #FFB6C1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kanto Pokedex</h1>
+    
+    <a id="back-button" href="MainPage.html">Back to Main Page</a>
+
+    <div id="pokemon-list"></div>
+
+    <div id="counts">
+        Caught: <span id="caught-count">0</span> / 151 | Shiny: <span id="shiny-count">0</span> / 151
+    </div>
+
+    <script>
+        const typeColors = {
+            fire: "#FF0000", water: "#0000FF", grass: "#008000", poison: "#C09", electric: "#FFD700",
+            flying: "#87CEFA", bug: "#9ACD32", normal: "#D3D3D3", fighting: "#CD5C5C", ground: "#DAA520",
+            rock: "#B8860B", ghost: "#708090", steel: "#B0C4DE", psychic: "#EE82EE", ice: "#E0FFFF",
+            dragon: "#8A2BE2", dark: "#A9A9A9", fairy: "#FFB6C1"
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const pokemonList = document.getElementById("pokemon-list");
+            const caughtCount = document.getElementById("caught-count");
+            const shinyCount = document.getElementById("shiny-count");
+
+            let caughtTotal = 0;
+            let shinyTotal = 0;
+
+            for (let i = 1; i <= 151; i++) {
+                fetch(`https://pokeapi.co/api/v2/pokemon/${i}`)
+                .then(response => response.json())
+                .then(data => {
+                    const pokemonDiv = document.createElement("div");
+                    pokemonDiv.classList.add("pokemon");
+
+                    const [type1, type2] = data.types.map(t => t.type.name);
+                    if (type2) {
+                        pokemonDiv.style.borderImage = `linear-gradient(135deg, ${typeColors[type1]} 50%, ${typeColors[type2]} 50%) 1`;
+                    } else {
+                        pokemonDiv.style.borderColor = typeColors[type1];
+                    }
+
+                    const img = document.createElement("img");
+                    img.src = data.sprites.front_default;
+                    img.alt = data.name;
+
+                    const numberSpan = document.createElement("span");
+                    numberSpan.textContent = `#${i} ${data.name}`;
+
+                    const typeSpan = document.createElement("span");
+                    typeSpan.textContent = `Type: ${data.types.map(t => t.type.name).join(", ")}`;
+
+                    const checkboxContainer = document.createElement("div");
+                    checkboxContainer.classList.add("checkbox-container");
+
+                    const caughtCheckbox = document.createElement("input");
+                    caughtCheckbox.type = "checkbox";
+                    caughtCheckbox.id = `caught-${i}`;
+                    caughtCheckbox.checked = localStorage.getItem(`caught-${i}`) === "true";
+                    caughtCheckbox.addEventListener("change", () => {
+                        localStorage.setItem(`caught-${i}`, caughtCheckbox.checked);
+                        updateCounts();
+                    });
+
+                    const caughtLabel = document.createElement("label");
+                    caughtLabel.textContent = "Caught";
+                    caughtLabel.appendChild(caughtCheckbox);
+
+                    const shinyCheckbox = document.createElement("input");
+                    shinyCheckbox.type = "checkbox";
+                    shinyCheckbox.id = `shiny-${i}`;
+                    shinyCheckbox.checked = localStorage.getItem(`shiny-${i}`) === "true";
+                    shinyCheckbox.addEventListener("change", () => {
+                        localStorage.setItem(`shiny-${i}`, shinyCheckbox.checked);
+                        updateCounts();
+                    });
+
+                    const shinyLabel = document.createElement("label");
+                    shinyLabel.textContent = "Shiny";
+                    shinyLabel.appendChild(shinyCheckbox);
+
+                    checkboxContainer.appendChild(caughtLabel);
+                    checkboxContainer.appendChild(shinyLabel);
+
+                    pokemonDiv.appendChild(numberSpan);
+                    pokemonDiv.appendChild(img);
+                    pokemonDiv.appendChild(typeSpan);
+                    pokemonDiv.appendChild(checkboxContainer);
+                    pokemonList.appendChild(pokemonDiv);
+
+                    // Initial count updates
+                    if (caughtCheckbox.checked) caughtTotal++;
+                    if (shinyCheckbox.checked) shinyTotal++;
+                    updateCounts();
+                });
+            }
+
+            function updateCounts() {
+                caughtTotal = 0;
+                shinyTotal = 0;
+                for (let i = 1; i <= 151; i++) {
+                    if (localStorage.getItem(`caught-${i}`) === "true") caughtTotal++;
+                    if (localStorage.getItem(`shiny-${i}`) === "true") shinyTotal++;
+                }
+                caughtCount.textContent = caughtTotal;
+                shinyCount.textContent = shinyTotal;
+            }
+        });
+    </script>
+</body>
+</html>
