@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Tracker - Kanto</title>
+    <title>Pokemon Tracker - Galar</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
@@ -22,7 +22,7 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-        .pokemon {
+      .pokemon {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,24 +34,24 @@
             border-width: 5px;
             border-style: solid;
         }
-        .pokemon img {
+      .pokemon img {
             width: 100px;
             height: 100px;
         }
-        .pokemon .pokemon-number {
+      .pokemon.pokemon-number {
             font-weight: bold;
         }
-        .checkbox-container {
+      .checkbox-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-top: 5px;
         }
-        .checkbox-container label {
+      .checkbox-container label {
             display: flex;
             align-items: center;
         }
-        .checkbox-container input[type="checkbox"] {
+      .checkbox-container input[type="checkbox"] {
             margin-left: 5px;
         }
         #counts {
@@ -74,14 +74,11 @@
     </style>
 </head>
 <body>
-    <h1>Kanto Pokedex</h1>
-    
+    <h1>Galar Pokedex</h1>
     <a id="back-button" href="MainPage.html">Back to Main Page</a>
-
     <div id="pokemon-list"></div>
-
     <div id="counts">
-        Caught: <span id="caught-count">0</span> / 151 | Shiny: <span id="shiny-count">0</span> / 151
+        Caught: <span id="caught-count">0</span> / 89 | Shiny: <span id="shiny-count">0</span> / 89
     </div>
 
     <script>
@@ -94,34 +91,22 @@
             let shinyTotal = 0;
 
             const typeColors = {
-                normal: "#A8A77A",
-                fire: "#EE8130",
-                water: "#6390F0",
-                electric: "#F7D02C",
-                grass: "#7AC74C",
-                ice: "#96D9D6",
-                fighting: "#C22E28",
-                poison: "#A33EA1",
-                ground: "#E2BF65",
-                flying: "#A98FF3",
-                psychic: "#F95587",
-                bug: "#A6B91A",
-                rock: "#B6A136",
-                ghost: "#735797",
-                dragon: "#6F35FC",
-                dark: "#705746",
-                steel: "#B7B7CE",
-                fairy: "#D685AD"
+                normal: "#A8A77A", fire: "#EE8130", water: "#6390F0", electric: "#F7D02C", grass: "#7AC74C",
+                ice: "#96D9D6", fighting: "#C22E28", poison: "#A33EA1", ground: "#E2BF65", flying: "#A98FF3",
+                psychic: "#F95587", bug: "#A6B91A", rock: "#B6A136", ghost: "#735797", dragon: "#6F35FC",
+                dark: "#705746", steel: "#B7B7CE", fairy: "#D685AD"
             };
 
-            for (let i = 1; i <= 151; i++) {
+            // Galar Pokemon range
+            for (let i = 810; i <= 898; i++) {
                 await fetchPokemon(i);
             }
 
             function updateCounts() {
                 caughtTotal = 0;
                 shinyTotal = 0;
-                for (let i = 1; i <= 151; i++) {
+                // Galar Pokemon range
+                for (let i = 810; i <= 898; i++) {
                     if (localStorage.getItem(`caught-${i}`) === "true") caughtTotal++;
                     if (localStorage.getItem(`shiny-${i}`) === "true") shinyTotal++;
                 }
@@ -138,7 +123,9 @@
                     pokemonDiv.classList.add("pokemon");
 
                     const img = document.createElement("img");
-                    img.src = data.sprites.front_default;
+                    // Use optional chaining and provide a fallback image
+                    let spriteURL = data.sprites?.front_default || data.sprites?.other?.["official-artwork"]?.front_default || "placeholder_image.png";
+                    img.src = spriteURL;
                     img.alt = data.name;
 
                     const numberSpan = document.createElement("span");
@@ -148,12 +135,12 @@
                     const typeSpan = document.createElement("span");
                     typeSpan.textContent = `Type: ${types.join(", ")}`;
 
-                    // Apply border color
+                    // Apply border color based on type
                     if (types.length === 1) {
-                        pokemonDiv.style.borderColor = typeColors[types[0]];
+                        pokemonDiv.style.borderColor = typeColors[types];
                     } else if (types.length === 2) {
-                        const color1 = typeColors[types[0]];
-                        const color2 = typeColors[types[1]];
+                        const color1 = typeColors[types];
+                        const color2 = typeColors[types];
                         pokemonDiv.style.border = `5px solid`;
                         pokemonDiv.style.borderImage = `linear-gradient(to right, ${color1} 50%, ${color2} 50%) 1`;
                     }
@@ -199,6 +186,7 @@
                     if (caughtCheckbox.checked) caughtTotal++;
                     if (shinyCheckbox.checked) shinyTotal++;
                     updateCounts();
+
                 } catch (error) {
                     console.error(`Error fetching Pokémon #${id}:`, error);
                 }

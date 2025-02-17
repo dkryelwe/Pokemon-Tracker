@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: lightblue;
+        }
+        h1 {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            color: #ffcb05;
+			-webkit-text-stroke: 2px black; /* Black border */
+            text-shadow: 4px 4px 0px #2a75bb, 6px 6px 5px rgba(0, 0, 0, 0.3);
+        }
+        #pokemon-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .pokemon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            width: 200px;
+            position: relative;
+            border: 5px solid #ccc; /* Default border */
+        }
+        .pokemon img {
+            width: 100px;
+            height: 100px;
+            margin-top: 10px;
+        }
+        .pokemon .pokemon-number {
+            font-weight: bold;
+            color: black;
+            margin-bottom: 5px;
+        }
+        .pokemon .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+        }
+        .pokemon .checkbox-container label {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .pokemon .checkbox-container input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        #totals {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+        }
+        #totals span {
+            margin-right: 20px;
+        }
+        .pokemon .image-container {
+            width: 120px; 
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            border: none;
+        }
+        
+        /* Type Colors */
+        :root {
+            --fire: #FF0000;
+            --water: #0000FF;
+            --grass: #008000;
+            --poison: #C09;
+            --electric: #FFD700;
+            --flying: #87CEFA;
+            --bug: #9ACD32;
+            --normal: #D3D3D3;
+            --fighting: #CD5C5C;
+            --ground: #DAA520;
+            --rock: #B8860B;
+            --ghost: #708090;
+            --steel: #B0C4DE;
+            --psychic: #EE82EE;
+            --ice: #E0FFFF;
+            --dragon: #8A2BE2;
+            --dark: #A9A9A9;
+            --fairy: #FFB6C1;
+        }
+
+        /* Single-Type Border */
+        .pokemon[data-type1] {
+            border-color: var(--single-color, #ccc);
+        }
+
+        /* Dual-Type Gradient Border */
+        .pokemon[data-type2] {
+            border-image: linear-gradient(135deg, var(--type1-color, #ccc) 50%, var(--type2-color, #ccc) 50%);
+            border-image-slice: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Pokemon Tracker (Kanto Dex)</h1>
+
+    <div id="pokemon-list"></div>
+
+    <div id="totals">
+        <span>Checked: <span id="checked-count">0</span></span>
+        <span>Unchecked: <span id="unchecked-count">0</span></span>
+    </div>
+
+    <script>
+        const typeColors = {
+            fire: "#FF0000",
+            water: "#0000FF",
+            grass: "#008000",
+            poison: "#C09",
+            electric: "#FFD700",
+            flying: "#87CEFA",
+            bug: "#9ACD32",
+            normal: "#D3D3D3",
+            fighting: "#CD5C5C",
+            ground: "#DAA520",
+            rock: "#B8860B",
+            ghost: "#708090",
+            steel: "#B0C4DE",
+            psychic: "#EE82EE",
+            ice: "#E0FFFF",
+            dragon: "#8A2BE2",
+            dark: "#A9A9A9",
+            fairy: "#FFB6C1"
+        };
+
+        const pokemonData = [];
+
+        for (let i = 1; i <= 151; i++) {
+            pokemonData.push({
+                name: "",
+                image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i}.png`,
+                number: i,
+                types: []
+            });
+        }
+
+        Promise.all(pokemonData.map((pokemon, index) => {
+            return fetch(`https://pokeapi.co/api/v2/pokemon/${index + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                pokemonData[index].name = data.name;
+                pokemonData[index].types = data.types.map(type => type.type.name);
+            })
+            .catch(error => console.error("Error fetching Pokemon data:", error));
+        })).then(() => {
+            const pokemonList = document.getElementById("pokemon-list");
+            const checkedCountSpan = document.getElementById("checked-count");
+            const uncheckedCountSpan = document.getElementById("unchecked-count");
+
+            let checkedCount = 0;
+            let uncheckedCount = 151;
+
+            pokemonData.forEach(pokemon => {
+                const pokemonDiv = document.createElement("div");
+                pokemonDiv.classList.add("pokemon");
+
+                // Assigning type colors
+                const [type1, type2] = pokemon.types;
+                pokemonDiv.setAttribute("data-type1", type1);
+                if (type2) {
+                    pokemonDiv.setAttribute("data-type2", type2);
+                    pokemonDiv.style.setProperty("--type1-color", typeColors[type1] || "#ccc");
+                    pokemonDiv.style.setProperty("--type2-color", typeColors[type2] || "#ccc");
+                } else {
+                    pokemonDiv.style.setProperty("--single-color", typeColors[type1] || "#ccc");
+                }
+
+                const numberSpan = document.createElement("span");
+                numberSpan.classList.add("pokemon-number");
+                numberSpan.textContent = `#${pokemon.number}`;
+
+                const imageContainer = document.createElement("div");
+                imageContainer.classList.add("image-container");
+
+                const img = document.createElement("img");
+                img.src = pokemon.image;
+                img.alt = pokemon.name;
+                imageContainer.appendChild(img);
+
+                const name = document.createElement("span");
+                name.textContent = pokemon.name;
+
+                const typeSpan = document.createElement("span");
+                typeSpan.textContent = pokemon.types.join(", ");
+
+                const checkboxContainer = document.createElement("div");
+                checkboxContainer.classList.add("checkbox-container");
+
+                const caughtCheckbox = document.createElement("input");
+                caughtCheckbox.type = "checkbox";
+                caughtCheckbox.addEventListener("change", () => {
+                    checkedCount += caughtCheckbox.checked ? 1 : -1;
+                    uncheckedCount -= caughtCheckbox.checked ? 1 : -1;
+                    checkedCountSpan.textContent = checkedCount;
+                    uncheckedCountSpan.textContent = uncheckedCount;
+                });
+
+                checkboxContainer.appendChild(caughtCheckbox);
+                pokemonDiv.appendChild(numberSpan);
+                pokemonDiv.appendChild(imageContainer);
+                pokemonDiv.appendChild(name);
+                pokemonDiv.appendChild(typeSpan);
+                pokemonDiv.appendChild(checkboxContainer);
+                pokemonList.appendChild(pokemonDiv);
+            });
+
+            checkedCountSpan.textContent = checkedCount;
+            uncheckedCountSpan.textContent = uncheckedCount;
+        });
+    </script>
+
+</body>
+</html>
